@@ -1,7 +1,8 @@
 import { Router } from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import pool from "../db.js";
+import pool from "../config/db.js";
+import { generateJWT } from "../utils/jwt.js";
 
 const router = Router();
 
@@ -40,11 +41,7 @@ router.post("/login", async (req, res) => {
     if (!passwordValida)
       return res.status(401).json({ error: "Credenciales inválidas" });
 
-    const token = jwt.sign(
-      { id: usuario.id, rol: usuario.rol },
-      process.env.JWT_SECRET,
-      { expiresIn: "7d" },
-    );
+    const token = generateJWT({ id: usuario.id, rol: usuario.rol });
 
     res.json({
       token,
