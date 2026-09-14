@@ -1,7 +1,6 @@
 import "dotenv/config";
 import express, { json } from "express";
 import cors from "cors";
-import pool from "./config/db";
 import authRoutes from "./routes/auth";
 import reservasRoutes from "./routes/reservas";
 import recursosRoutes from "./routes/recursos";

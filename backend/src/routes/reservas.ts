@@ -1,11 +1,14 @@
 import { Router } from "express";
+import type { Request, Response } from "express";
 import pool from "../config/db";
 import { verificarToken } from "../middleware/auth";
+import type { Reserva } from "../types.js";
+
 
 const router = Router();
 
 // Ver disponibilidad (reservas existentes) de un recurso en una fecha
-router.get("/recursos/:id/disponibilidad", async (req, res) => {
+router.get("/recursos/:id/disponibilidad", async (req: Request, res:Response) => {
   const { id } = req.params;
   const { fecha } = req.query;
 
@@ -14,7 +17,7 @@ router.get("/recursos/:id/disponibilidad", async (req, res) => {
   }
 
   try {
-    const result = await pool.query(
+    const result = await pool.query<Pick<Reserva, "id" | "rango_horario">>(
       `SELECT id, rango_horario FROM reservas
        WHERE recurso_id = $1
          AND estado = 'confirmada'
@@ -29,9 +32,9 @@ router.get("/recursos/:id/disponibilidad", async (req, res) => {
 });
 
 // Crear una reserva (requiere estar autenticado)
-router.post("/reservas", verificarToken, async (req, res) => {
+router.post("/reservas", verificarToken, async (req: Request, res:Response) => {
   const { recurso_id, inicio, fin } = req.body;
-  const usuario_id = req.usuario.id;
+  const usuario_id = req.usuario!.id;
 
   if (!recurso_id || !inicio || !fin) {
     return res
@@ -40,14 +43,14 @@ router.post("/reservas", verificarToken, async (req, res) => {
   }
 
   try {
-    const result = await pool.query(
+    const result = await pool.query<Reserva>(
       `INSERT INTO reservas (recurso_id, usuario_id, rango_horario)
        VALUES ($1, $2, tsrange($3, $4))
        RETURNING id, recurso_id, rango_horario, estado`,
       [recurso_id, usuario_id, inicio, fin],
     );
     res.status(201).json(result.rows[0]);
-  } catch (err) {
+  } catch (err:any) {
     if (err.code === "23P01") {
       // Violación del constraint EXCLUDE = choque de horario
       return res.status(409).json({ error: "Ese horario ya está reservado" });
@@ -58,8 +61,8 @@ router.post("/reservas", verificarToken, async (req, res) => {
 });
 
 // Ver mis propias reservas
-router.get("/reservas/mias", verificarToken, async (req, res) => {
-  const usuario_id = req.usuario.id;
+router.get("/reservas/mias", verificarToken, async (req:Request, res:Response) => {
+  const usuario_id = req.usuario!.id;
   try {
     const result = await pool.query(
       `SELECT r.id, r.rango_horario, r.estado, rec.nombre AS recurso_nombre
@@ -70,7 +73,7 @@ router.get("/reservas/mias", verificarToken, async (req, res) => {
       [usuario_id],
     );
     res.json(result.rows);
-  } catch (err) {
+  } catch (err:any) {
     console.error(err);
     res.status(500).json({ error: "Error al consultar tus reservas" });
   }
