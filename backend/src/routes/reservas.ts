@@ -1,6 +1,6 @@
 import { Router } from "express";
-import pool from "../config/db.js";
-import { verificarToken } from "../middleware/auth.js";
+import pool from "../config/db";
+import { verificarToken } from "../middleware/auth";
 
 const router = Router();
 

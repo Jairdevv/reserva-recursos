@@ -1,10 +1,10 @@
 import "dotenv/config";
 import express, { json } from "express";
 import cors from "cors";
-import pool from "./config/db.js";
-import authRoutes from "./routes/auth.js";
-import reservasRoutes from "./routes/reservas.js";
-import recursosRoutes from "./routes/recursos.js";
+import pool from "./config/db";
+import authRoutes from "./routes/auth";
+import reservasRoutes from "./routes/reservas";
+import recursosRoutes from "./routes/recursos";
 
 const app = express();
 app.use(cors());
