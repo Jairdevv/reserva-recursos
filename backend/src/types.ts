@@ -38,3 +38,10 @@ declare global {
     }
   }
 }
+
+export interface ReservaConRecurso {
+  id: number;
+  rango_horario: string;
+  estado: "confirmada" | "cancelada";
+  recurso_nombre: string;
+}
