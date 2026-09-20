@@ -45,3 +45,14 @@ export interface ReservaConRecurso {
   estado: "confirmada" | "cancelada";
   recurso_nombre: string;
 }
+
+export interface LoginResponse {
+  token: string;
+  usuario: Pick<Usuario, "id" | "nombre" | "email" | "rol">;
+}
+
+export interface RegistroResponse {
+  id: number;
+  nombre: string;
+  email: string;
+}

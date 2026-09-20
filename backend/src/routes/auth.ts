@@ -1,10 +1,9 @@
 import { Router } from "express";
-import type {Request, Response} from "express"
+import type { Request, Response } from "express";
 import bcrypt from "bcrypt";
 import pool from "../config/db";
 import { generateJWT } from "../utils/jwt";
-import type { Usuario } from "../types.js";
-
+import type { LoginResponse, Usuario } from "../types.js";
 
 const router = Router();
 
@@ -29,9 +28,10 @@ router.post("/registro", async (req: Request, res: Response) => {
 router.post("/login", async (req: Request, res: Response) => {
   const { email, password } = req.body;
   try {
-    const result = await pool.query<Usuario>("SELECT * FROM usuarios WHERE email = $1", [
-      email,
-    ]);
+    const result = await pool.query<Usuario>(
+      "SELECT * FROM usuarios WHERE email = $1",
+      [email],
+    );
     const usuario = result.rows[0];
     if (!usuario)
       return res.status(401).json({ error: "Credenciales inválidas" });
@@ -45,10 +45,16 @@ router.post("/login", async (req: Request, res: Response) => {
 
     const token = generateJWT({ id: usuario.id, rol: usuario.rol });
 
-    res.json({
+    const response: LoginResponse = {
       token,
-      usuario: { id: usuario.id, nombre: usuario.nombre, rol: usuario.rol },
-    });
+      usuario: {
+        id: usuario.id,
+        nombre: usuario.nombre,
+        email: usuario.email,
+        rol: usuario.rol,
+      },
+    };
+    res.json(response);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Error al iniciar sesión" });
