@@ -12,5 +12,5 @@
     "declaration": true,
     "types": ["node", "express"],
   },
-  "include": ["src/**/*.ts"],
+  "include": ["src/**/*"],
 }

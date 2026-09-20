@@ -1,19 +1,29 @@
 import { Router } from "express";
-import type {Request, Response} from "express"
-import pool from "../config/db";
-import type { Recurso } from "../types.js";
-
+import * as recursosController from "../controllers/recursos.controller";
+import { verificarToken } from "../middleware/auth";
+import { verificarAdmin } from "../middleware/verificarAdmin";
 
 const router = Router();
 
-router.get("/recursos", async (req: Request, res: Response) => {
-  try {
-    const result = await pool.query<Recurso>("SELECT * FROM recursos");
-    res.json(result.rows);
-  } catch (err:any) {
-    console.error(err);
-    res.status(500).json({ error: "Error al consultar recursos" });
-  }
-});
+router.get("/recursos", verificarToken, recursosController.listar);
+router.get("/recursos/:id", verificarToken, recursosController.obtenerPorId);
+router.post(
+  "/recursos",
+  verificarToken,
+  verificarAdmin,
+  recursosController.crear,
+);
+router.put(
+  "/recursos/:id",
+  verificarToken,
+  verificarAdmin,
+  recursosController.actualizar,
+);
+router.delete(
+  "/recursos/:id",
+  verificarToken,
+  verificarAdmin,
+  recursosController.eliminar,
+);
 
 export default router;
