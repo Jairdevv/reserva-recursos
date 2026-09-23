@@ -51,7 +51,7 @@ export async function obtenerReservaPorId(id: number): Promise<Reserva | null> {
 
 export async function cancelarReserva(id: number): Promise<Reserva | null> {
   const result = await pool.query<Reserva>(
-    "UPDATE reservas SET estado = 'cancelada' WHERE id = $1 RETURNING *",
+    "UPDATE reservas SET estado = 'cancelada', actualizado_en = NOW() WHERE id = $1 RETURNING *",
     [id],
   );
   return result.rows[0] ?? null;

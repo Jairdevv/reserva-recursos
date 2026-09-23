@@ -5,6 +5,7 @@ export interface Reserva {
   rango_horario: string;
   estado: "confirmada" | "cancelada";
   creado_en: Date;
+  actualizado_en: Date;
 }
 
 export interface ReservaConRecurso {
