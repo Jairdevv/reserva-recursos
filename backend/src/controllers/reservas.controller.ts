@@ -21,6 +21,34 @@ export async function disponibilidad(req: Request, res: Response) {
   }
 }
 
+export async function reservasEnRango(req: Request, res: Response) {
+  const recursoId = Number(req.params.id);
+  const { desde, hasta } = req.query;
+
+  if (
+    !desde ||
+    !hasta ||
+    typeof desde !== "string" ||
+    typeof hasta !== "string"
+  ) {
+    return res
+      .status(400)
+      .json({ error: "Los parámetros 'desde' y 'hasta' son requeridos" });
+  }
+
+  try {
+    const reservas = await reservasService.consultarReservasEnRango(
+      recursoId,
+      desde,
+      hasta,
+    );
+    res.json(reservas);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Error al consultar reservas" });
+  }
+}
+
 export async function crear(req: Request, res: Response) {
   const { recurso_id, inicio, fin } = req.body;
   const usuarioId = req.usuario!.id;

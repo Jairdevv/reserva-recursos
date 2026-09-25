@@ -12,6 +12,21 @@ export async function obtenerDisponibilidad(recursoId: number, fecha: string) {
   return result.rows;
 }
 
+export async function obtenerReservasEnRango(
+  recursoId: number,
+  desde: string,
+  hasta: string,
+): Promise<Pick<Reserva, "id" | "rango_horario">[]> {
+  const result = await pool.query<Pick<Reserva, "id" | "rango_horario">>(
+    `SELECT id, rango_horario FROM reservas
+     WHERE recurso_id = $1
+       AND estado = 'confirmada'
+       AND rango_horario && tsrange($2::date, $3::date)`,
+    [recursoId, desde, hasta],
+  );
+  return result.rows;
+}
+
 export async function crearReserva(
   recursoId: number,
   usuarioId: number,

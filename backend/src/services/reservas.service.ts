@@ -12,6 +12,14 @@ export async function consultarDisponibilidad(
   return reservasRepo.obtenerDisponibilidad(recursoId, fecha);
 }
 
+export async function consultarReservasEnRango(
+  recursoId: number,
+  desde: string,
+  hasta: string,
+) {
+  return reservasRepo.obtenerReservasEnRango(recursoId, desde, hasta);
+}
+
 export async function crearReserva(
   recursoId: number,
   usuarioId: number,
