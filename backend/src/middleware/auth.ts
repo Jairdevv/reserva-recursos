@@ -1,27 +1,22 @@
 import jwt from "jsonwebtoken";
-import type { Request, Response, NextFunction } from "express";
-import type { JwtPayload } from "../types/index";
+import type { RequestHandler } from "express";
+import { config } from "../config/env";
 
-export function verificarToken(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) {
-  const authHeader = req.headers.authorization;
-  if (!authHeader) {
-    return res.status(401).json({ error: "Token requerido" });
+export const verificarToken: RequestHandler = (req, res, next) => {
+  const match = req.headers.authorization?.match(/^Bearer (\S+)$/i);
+  if (!match) {
+    res.status(401).json({ error: "Token requerido" });
+    return;
   }
-
-  const token = authHeader.split(" ")[1];
   try {
-    const payload = jwt.verify(
-      token,
-      process.env.JWT_SECRET as string,
-    ) as JwtPayload;
-    req.usuario = payload;
+    const payload = jwt.verify(match[1], config.jwtSecret, { algorithms: ["HS256"] });
+    if (typeof payload === "string" || !Number.isSafeInteger(payload.id) ||
+        payload.id <= 0 || !["usuario", "admin"].includes(payload.rol)) {
+      throw new Error("Token inválido");
+    }
+    req.usuario = { id: payload.id, rol: payload.rol };
     next();
-  } catch (err: any) {
-    console.error(err);
-    return res.status(403).json({ error: "Token inválido o expirado" });
+  } catch {
+    res.status(401).json({ error: "Token inválido o expirado" });
   }
-}
+};

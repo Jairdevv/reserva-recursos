@@ -1,41 +1,74 @@
-import * as recursosRepo from "../repositories/recursos.repository";
-import type {
-  Recurso,
-  CrearRecursoInput,
-  ActualizarRecursoInput,
-} from "../types/index.js";
+import * as repo from "../repositories/recursos.repository";
+import type { CrearRecursoInput, ActualizarRecursoInput } from "../types";
+import { HttpError } from "../utils/errors";
+import { objectInput, positiveId, textInput } from "../utils/validation";
 
-export class RecursoNoEncontradoError extends Error {}
-
-export async function listarRecursos(): Promise<Recurso[]> {
-  return recursosRepo.obtenerRecursos();
-}
-
-export async function obtenerRecursoPorId(id: number): Promise<Recurso | null> {
-  return recursosRepo.obtenerRecursoPorId(id);
-}
-
-export async function crearRecurso(datos: CrearRecursoInput): Promise<Recurso> {
-  if (!datos.nombre || datos.nombre.trim().length === 0) {
-    throw new Error("El nombre del recurso es requerido");
+export function validarRecurso(
+  value: unknown,
+  partial = false,
+): ActualizarRecursoInput {
+  const data = objectInput(value);
+  const result: ActualizarRecursoInput = {};
+  if (
+    Object.keys(data).some(
+      (key) => !["nombre", "descripcion", "capacidad"].includes(key),
+    )
+  ) {
+    throw new HttpError(400, "Campos de recurso no admitidos");
   }
-  return recursosRepo.crearRecurso(datos);
+  if (!partial || "nombre" in data)
+    result.nombre = textInput(data.nombre, "Nombre", 100);
+  if ("descripcion" in data) {
+    if (data.descripcion !== null && typeof data.descripcion !== "string") {
+      throw new HttpError(400, "Descripción inválida");
+    }
+    result.descripcion = data.descripcion as string | null;
+  }
+  if ("capacidad" in data) {
+    if (
+      data.capacidad !== null &&
+      (typeof data.capacidad !== "number" ||
+        !Number.isInteger(data.capacidad) ||
+        data.capacidad <= 0 ||
+        data.capacidad > 2147483647)
+    ) {
+      throw new HttpError(
+        400,
+        "La capacidad debe ser un entero positivo o null",
+      );
+    }
+    result.capacidad = data.capacidad as number | null;
+  }
+  if (!Object.keys(result).length)
+    throw new HttpError(400, "No hay campos para actualizar");
+  return result;
 }
 
-export async function actualizarRecurso(
-  id: number,
-  datos: ActualizarRecursoInput,
-): Promise<Recurso> {
-  const actualizado = await recursosRepo.actualizarRecurso(id, datos);
-  if (!actualizado) {
-    throw new RecursoNoEncontradoError(`Recurso ${id} no encontrado`);
-  }
-  return actualizado;
+export const listarRecursos = () => repo.obtenerRecursos();
+
+export async function obtenerRecursoPorId(id: number) {
+  const recurso = await repo.obtenerRecursoPorId(positiveId(id));
+  if (!recurso) throw new HttpError(404, "Recurso no encontrado");
+  return recurso;
 }
 
-export async function eliminarRecurso(id: number): Promise<void> {
-  const eliminado = await recursosRepo.eliminarRecurso(id);
-  if (!eliminado) {
-    throw new RecursoNoEncontradoError(`Recurso ${id} no encontrado`);
-  }
+export async function requerirRecursoActivo(id: number) {
+  const recurso = await obtenerRecursoPorId(id);
+  if (!recurso.activo) throw new HttpError(409, "El recurso está inactivo");
+  return recurso;
+}
+
+export const crearRecurso = (value: unknown) =>
+  repo.crearRecurso(validarRecurso(value) as CrearRecursoInput);
+
+export async function actualizarRecurso(id: number, value: unknown) {
+  const data = validarRecurso(value, true);
+  const recurso = await repo.actualizarRecurso(positiveId(id), data);
+  if (!recurso) throw new HttpError(404, "Recurso no encontrado");
+  return recurso;
+}
+
+export async function eliminarRecurso(id: number) {
+  if (!(await repo.eliminarRecurso(positiveId(id))))
+    throw new HttpError(404, "Recurso no encontrado");
 }

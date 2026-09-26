@@ -6,7 +6,9 @@ import type {
 } from "../types/recurso.types";
 
 export async function obtenerRecursos(): Promise<Recurso[]> {
-  const result = await pool.query<Recurso>("SELECT * FROM recursos");
+  const result = await pool.query<Recurso>(
+    "SELECT * FROM recursos WHERE activo = true ORDER BY nombre, id",
+  );
   return result.rows;
 }
 
@@ -31,13 +33,23 @@ export async function actualizarRecurso(
   datos: ActualizarRecursoInput,
 ): Promise<Recurso | null> {
   const result = await pool.query<Recurso>(
-    `UPDATE recursos SET nombre = COALESCE($1, nombre), descripcion = COALESCE($2, descripcion), capacidad = COALESCE($3, capacidad) WHERE id = $4 RETURNING *`,
-    [datos.nombre, datos.descripcion, datos.capacidad, id],
+    `UPDATE recursos SET nombre = COALESCE($1, nombre), descripcion = CASE WHEN $5 THEN $2 ELSE descripcion END, capacidad = CASE WHEN $6 THEN $3 ELSE capacidad END WHERE id = $4 RETURNING *`,
+    [
+      datos.nombre,
+      datos.descripcion,
+      datos.capacidad,
+      id,
+      "descripcion" in datos,
+      "capacidad" in datos,
+    ],
   );
   return result.rows[0] ?? null;
 }
 
 export async function eliminarRecurso(id: number): Promise<boolean> {
-  const result = await pool.query("DELETE FROM recursos WHERE id = $1", [id]);
+  const result = await pool.query(
+    "UPDATE recursos SET activo = false WHERE id = $1",
+    [id],
+  );
   return (result.rowCount ?? 0) > 0;
 }

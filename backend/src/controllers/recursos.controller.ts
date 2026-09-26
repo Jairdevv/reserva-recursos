@@ -1,64 +1,21 @@
 import type { Request, Response } from "express";
-import * as recursosService from "../services/recursos.service";
+import * as service from "../services/recursos.service";
+import { positiveId } from "../utils/validation";
 
-export async function listar(req: Request, res: Response) {
-  try {
-    const recursos = await recursosService.listarRecursos();
-    res.json(recursos);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Error al listar recursos" });
-  }
+export async function listar(_req: Request, res: Response) {
+  res.json(await service.listarRecursos());
 }
-
 export async function obtenerPorId(req: Request, res: Response) {
-  const id = Number(req.params.id);
-  try {
-    const recurso = await recursosService.obtenerRecursoPorId(id);
-    if (!recurso) {
-      return res.status(404).json({ error: `Recurso ${id} no encontrado` });
-    }
-    res.json(recurso);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Error al obtener recurso" });
-  }
+  res.json(await service.obtenerRecursoPorId(positiveId(req.params.id)));
 }
-
 export async function crear(req: Request, res: Response) {
-  try {
-    const recurso = await recursosService.crearRecurso(req.body);
-    res.status(201).json(recurso);
-  } catch (err) {
-    console.error(err);
-    res.status(400).json({ error: (err as Error).message });
-  }
+  res.status(201).json(await service.crearRecurso(req.body));
 }
-
 export async function actualizar(req: Request, res: Response) {
-  const id = Number(req.params.id);
-  try {
-    const recurso = await recursosService.actualizarRecurso(id, req.body);
-    res.json(recurso);
-  } catch (err) {
-    if (err instanceof recursosService.RecursoNoEncontradoError) {
-      return res.status(404).json({ error: err.message });
-    }
-    console.error(err);
-    res.status(500).json({ error: "Error al actualizar recurso" });
-  }
+  res.json(await service.actualizarRecurso(positiveId(req.params.id), req.body));
 }
-
+// DELETE conserva su ruta, pero desactiva: nunca borra el historial.
 export async function eliminar(req: Request, res: Response) {
-  const id = Number(req.params.id);
-  try {
-    await recursosService.eliminarRecurso(id);
-    res.status(204).send();
-  } catch (err) {
-    if (err instanceof recursosService.RecursoNoEncontradoError) {
-      return res.status(404).json({ error: err.message });
-    }
-    console.error(err);
-    res.status(500).json({ error: "Error al eliminar recurso" });
-  }
+  await service.eliminarRecurso(positiveId(req.params.id));
+  res.status(204).send();
 }

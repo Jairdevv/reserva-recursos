@@ -17,7 +17,7 @@ export async function buscarUsuarioPorEmail(
   email: string,
 ): Promise<Usuario | null> {
   const result = await pool.query<Usuario>(
-    "SELECT * FROM usuarios WHERE email = $1",
+    "SELECT * FROM usuarios WHERE lower(btrim(email)) = $1",
     [email],
   );
   return result.rows[0] ?? null;
