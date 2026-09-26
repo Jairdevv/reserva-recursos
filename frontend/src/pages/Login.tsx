@@ -1,7 +1,9 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import { login } from "../services";
+import { iniciarSesion } from "../session";
+import { errorMessage } from "../api";
 import "../styles/forms.css";
 
 export default function Login() {
@@ -10,6 +12,7 @@ export default function Login() {
   const [error, setError] = useState("");
   const [cargando, setCargando] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -17,11 +20,11 @@ export default function Login() {
     setCargando(true);
     try {
       const data = await login(email, password);
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("usuario", JSON.stringify(data.usuario));
-      navigate("/recursos");
-    } catch {
-      setError("Email o contraseña incorrectos");
+      iniciarSesion(data);
+      const from = location.state?.from;
+      navigate(typeof from === "string" && from.startsWith("/") && !from.startsWith("//") ? from : "/recursos", { replace: true });
+    } catch (error) {
+      setError(errorMessage(error, "No se pudo iniciar sesión"));
     } finally {
       setCargando(false);
     }

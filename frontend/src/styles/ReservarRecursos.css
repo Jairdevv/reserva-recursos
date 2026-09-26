@@ -1,0 +1,77 @@
+.reservar-page {
+  padding: clamp(1.5rem, 4vw, 3rem) clamp(1.5rem, 5vw, 4rem);
+}
+
+.reservar-page h2 {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 1.8rem;
+  margin: 0 0 0.5rem;
+}
+
+.reservar-hint {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  margin: 0 0 1.5rem;
+}
+
+.reservar-ok {
+  color: var(--ok);
+  font-size: 0.9rem;
+}
+
+.reservar-calendar {
+  border: 1px solid var(--border);
+  padding: 1rem;
+  background: var(--bg-surface);
+}
+
+/* Tematiza FullCalendar con tu paleta */
+.reservar-calendar .fc {
+  font-family: var(--font-mono);
+  color: var(--text);
+}
+
+.reservar-calendar .fc-theme-standard td,
+.reservar-calendar .fc-theme-standard th {
+  border-color: var(--border);
+}
+
+.reservar-calendar .fc-col-header-cell {
+  background: transparent;
+}
+
+.reservar-calendar .fc-toolbar-title {
+  font-family: var(--font-display);
+  font-size: 1.2rem !important;
+}
+
+.reservar-calendar .fc-button {
+  background: var(--bg) !important;
+  border: 1px solid var(--border) !important;
+  color: var(--text) !important;
+  font-family: var(--font-mono) !important;
+  box-shadow: none !important;
+}
+
+.reservar-calendar .fc-button:hover {
+  border-color: var(--accent) !important;
+}
+
+.reservar-calendar .fc-button-active {
+  background: var(--accent) !important;
+  color: var(--bg) !important;
+}
+
+.reservar-calendar .fc-timegrid-slot-label {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.reservar-confirmacion {
+  border: 1px solid var(--border);
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+.reservar-confirmacion button { margin: 0.25rem 0.5rem 0.25rem 0; }
+.reservar-page button:disabled { opacity: 0.6; cursor: wait; }

@@ -2,7 +2,7 @@ import { useState } from "react";
 import type { FormEvent } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { registro } from "../services";
-import axios from "axios";
+import { errorMessage } from "../api";
 import "../styles/forms.css";
 
 export default function Registro() {
@@ -21,11 +21,7 @@ export default function Registro() {
       await registro(nombre, email, password);
       navigate("/login");
     } catch (err) {
-      if (axios.isAxiosError(err) && err.response?.status === 409) {
-        setError("Ese email ya está registrado");
-      } else {
-        setError("Error al registrar, intenta de nuevo");
-      }
+      setError(errorMessage(err, "Error al registrar, intenta de nuevo"));
     } finally {
       setCargando(false);
     }

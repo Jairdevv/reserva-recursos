@@ -37,9 +37,22 @@ export const getRecursos = async (): Promise<Recurso[]> => {
 };
 
 export const getMisReservas = async (): Promise<ReservaConRecurso[]> => {
-  const { data } = await api.get<ReservaConRecurso[]>("/reservas/mias");
+  const { data } = await api.get<ReservaConRecurso[]>("/mis-reservas");
   return data;
 };
+
+export async function getReservasEnRango(
+  recursoId: number,
+  desde: string,
+  hasta: string,
+  signal?: AbortSignal,
+): Promise<Pick<Reserva, "id" | "inicio" | "fin">[]> {
+  const { data } = await api.get<Pick<Reserva, "id" | "inicio" | "fin">[]>(
+    `/recursos/${recursoId}/reservas`,
+    { params: { desde, hasta }, signal },
+  );
+  return data;
+}
 
 export const crearReserva = async (
   recurso_id: number,
@@ -51,5 +64,10 @@ export const crearReserva = async (
     inicio,
     fin,
   });
+  return data;
+};
+
+export const cancelarReserva = async (id: number): Promise<Reserva> => {
+  const { data } = await api.patch<Reserva>(`/reservas/${id}/cancelar`);
   return data;
 };

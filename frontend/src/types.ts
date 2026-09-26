@@ -17,18 +17,21 @@ export interface Recurso {
   nombre: string;
   descripcion: string | null;
   capacidad: number | null;
+  activo: boolean;
 }
 
 export interface Reserva {
   id: number;
   recurso_id: number;
-  rango_horario: string; // Postgres devuelve elSRANGE como string, ej: '["2026-09-10 14:00","2026-09-10 16:00")'
+  inicio: string;
+  fin: string;
   estado: "confirmada" | "cancelada";
 }
 
 export interface ReservaConRecurso {
   id: number;
-  rango_horario: string;
+  inicio: string;
+  fin: string;
   estado: "confirmada" | "cancelada";
   recurso_nombre: string;
 }

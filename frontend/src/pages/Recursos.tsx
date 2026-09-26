@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { getRecursos } from "../services";
+import { cerrarSesion } from "../session";
 import type { Recurso } from "../types";
 import "../styles/Recursos.css";
 
@@ -9,7 +10,7 @@ export default function Recursos() {
   const [recursos, setRecursos] = useState<Recurso[]>([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState("");
-  const navigate = useNavigate();
+
 
   useEffect(() => {
     getRecursos()
@@ -18,11 +19,6 @@ export default function Recursos() {
       .finally(() => setCargando(false));
   }, []);
 
-  const cerrarSesion = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("usuario");
-    navigate("/login");
-  };
 
   return (
     <div className="recursos-page">
@@ -43,16 +39,17 @@ export default function Recursos() {
       {!cargando && recursos.length > 0 && (
         <div className="recursos-board">
           {recursos.map((r) => (
-            <div className="recursos-row" key={r.id}>
+            <Link to={`/recursos/${r.id}/reservar`} className="recursos-row" key={r.id}>
               <span className="recursos-row-nombre">{r.nombre}</span>
               <span className="recursos-row-desc">{r.descripcion ?? "—"}</span>
               <span className="recursos-row-capacidad">
                 {r.capacidad ? `cap. ${r.capacidad}` : "—"}
               </span>
-            </div>
+            </Link>
           ))}
         </div>
-      )}
-    </div>
+      )
+      }
+    </div >
   );
 }
