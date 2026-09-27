@@ -4,7 +4,7 @@
   },
   "compilerOptions":{
     "outDir": "./dist",
-    "rootDir": "./",
+    "rootDir": "./src",
     "lib": ["esnext"],
     "target": "ESnext",
     "moduleResolution": "NodeNext",
@@ -15,5 +15,6 @@
     "declaration": true,
     "types": ["node", "express"],
   },
-  "include": ["./**/*.ts", "../src/**/*.ts"]
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules", "dist", "tests"]
 }

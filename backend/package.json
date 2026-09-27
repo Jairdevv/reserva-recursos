@@ -4,12 +4,13 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "tsx --test tests/validation.test.ts",
+    "test": "npm run typecheck && tsx --test tests/validation.test.ts",
     "dev": "nodemon src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
-    "test:integration": "tsx --test tests/integration.test.ts",
-    "migrate": "node scripts/migrate.cjs"
+    "test:integration": "npm run typecheck && tsx --test tests/integration.test.ts",
+    "migrate": "node scripts/migrate.cjs",
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc -p tests/tsconfig.json"
   },
   "keywords": [],
   "author": "",
