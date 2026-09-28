@@ -19,6 +19,11 @@ export interface Recurso {
   capacidad: number | null;
   activo: boolean;
 }
+export interface NuevoRecurso {
+  nombre: string;
+  descripcion?: string | null;
+  capacidad?: number | null;
+}
 
 export interface Reserva {
   id: number;

@@ -5,6 +5,7 @@ import type {
   Reserva,
   ReservaConRecurso,
   RegistroResponse,
+  NuevoRecurso,
 } from "./types";
 
 export const login = async (
@@ -31,28 +32,45 @@ export const registro = async (
   return response.data;
 };
 
-export const getRecursos = async (): Promise<Recurso[]> => {
-  const { data } = await api.get<Recurso[]>("/recursos");
+export const getRecursos = async (signal?: AbortSignal): Promise<Recurso[]> => {
+  const { data } = await api.get<Recurso[]>("/recursos", { signal });
   return data;
 };
 
-export const getMisReservas = async (): Promise<ReservaConRecurso[]> => {
-  const { data } = await api.get<ReservaConRecurso[]>("/mis-reservas");
+export const crearRecurso = async (datos: NuevoRecurso): Promise<Recurso> => {
+  const { data } = await api.post<Recurso>("/recursos", datos);
   return data;
 };
 
-export async function getReservasEnRango(
+export const actualizarRecurso = async (
+  id: number,
+  datos: NuevoRecurso,
+): Promise<Recurso> => {
+  const { data } = await api.put<Recurso>(`/recursos/${id}`, datos);
+  return data;
+};
+
+export const desactivarRecurso = async (id: number): Promise<void> => {
+  await api.delete(`/recursos/${id}`);
+};
+
+export const getMisReservas = async (signal?: AbortSignal): Promise<ReservaConRecurso[]> => {
+  const { data } = await api.get<ReservaConRecurso[]>("/mis-reservas", { signal });
+  return data;
+};
+
+export const getReservasEnRango = async (
   recursoId: number,
   desde: string,
   hasta: string,
   signal?: AbortSignal,
-): Promise<Pick<Reserva, "id" | "inicio" | "fin">[]> {
+): Promise<Pick<Reserva, "id" | "inicio" | "fin">[]> => {
   const { data } = await api.get<Pick<Reserva, "id" | "inicio" | "fin">[]>(
     `/recursos/${recursoId}/reservas`,
     { params: { desde, hasta }, signal },
   );
   return data;
-}
+};
 
 export const crearReserva = async (
   recurso_id: number,
@@ -69,5 +87,10 @@ export const crearReserva = async (
 
 export const cancelarReserva = async (id: number): Promise<Reserva> => {
   const { data } = await api.patch<Reserva>(`/reservas/${id}/cancelar`);
+  return data;
+};
+
+export const getRecurso = async (id: number, signal?: AbortSignal): Promise<Recurso> => {
+  const { data } = await api.get<Recurso>(`/recursos/${id}`, { signal });
   return data;
 };
