@@ -10,11 +10,14 @@ import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./ProtectedRoute";
 import AdminRoute from "./AdminRoute";
 import AppLayout from "./components/AppLayout";
+import { useConexion } from "./useConexion";
 import "./App.css";
 
 const ReservarRecurso = lazy(() => import("./pages/ReservarRecurso"));
 
 export default function App() {
+  useConexion();
+
   return <BrowserRouter>
     <Routes>
       <Route path="/" element={<Landing />} />
