@@ -53,7 +53,10 @@ test("offsets distintos representan el mismo instante y el rango es exclusivo al
 test("emails se normalizan y contraseñas no se truncan por bcrypt", () => {
   assert.equal(emailInput("  USER@Example.COM "), "user@example.com");
   invalid(() => emailInput("incorrecto"));
-  invalid(() => passwordInput("12345", true));
-  invalid(() => passwordInput("é".repeat(37), true));
-  assert.equal(passwordInput("secreto", true), "secreto");
+  invalid(() => passwordInput("secreto1!", true));
+  invalid(() => passwordInput("Secreto!", true));
+  invalid(() => passwordInput("Secreto1", true));
+  invalid(() => passwordInput("Sec1!", true));
+  invalid(() => passwordInput("s1!".repeat(40), true));
+  assert.equal(passwordInput("Secreto1!", true), "Secreto1!");
 });

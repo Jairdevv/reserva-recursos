@@ -44,14 +44,26 @@ export function emailInput(value: unknown): string {
 export function passwordInput(value: unknown, registering = false): string {
   if (
     typeof value !== "string" ||
-    value.length < (registering ? 6 : 1) ||
+    value.length < (registering ? 8 : 1) ||
     Buffer.byteLength(value, "utf8") > 72
   ) {
     throw new HttpError(
       400,
       registering
-        ? "La contraseña requiere al menos 6 caracteres"
+        ? "La contraseña requiere al menos 8 caracteres, una mayúscula, un número y un símbolo"
         : "Contraseña inválida",
+    );
+  }
+  if (
+    registering &&
+    (value.length < 8 ||
+      !/\p{Lu}/u.test(value) ||
+      !/[0-9]/.test(value) ||
+      !/[^\p{L}\p{N}\s]/u.test(value))
+  ) {
+    throw new HttpError(
+      400,
+      "Usa al menos 8 caracteres, una mayúscula, un número y un símbolo",
     );
   }
   return value;
