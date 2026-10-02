@@ -19,6 +19,29 @@ export const handleError: ErrorRequestHandler = (error, _req, res, _next) => {
     res.status(409).json({ error: "Ese horario ya está reservado" });
     return;
   }
+
+  const unavailable =
+    code?.startsWith("08") ||
+    [
+      "57P01",
+      "57P02",
+      "57P03",
+      "53300",
+      "ECONNREFUSED",
+      "ECONNRESET",
+      "ETIMEDOUT",
+      "EAI_AGAIN",
+    ].includes(code ?? "");
+
+  if (unavailable) {
+    console.error("Infraestructura no disponible", {
+      name: error?.name,
+      code,
+    });
+
+    res.status(503).json({ error: "Servicio temporalmente no disponible" });
+    return;
+  }
   console.error("Error inesperado", { name: error?.name, code });
   res.status(500).json({ error: "Error interno del servidor" });
 };

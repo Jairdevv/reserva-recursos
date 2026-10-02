@@ -25,6 +25,7 @@ let adminToken: string;
 let resourceId: number;
 let reservationId: number;
 const secret = randomBytes(32).toString("hex");
+const testPassword = "Secreto123!";
 const originalDatabase =
   process.env.TEST_DATABASE_URL || process.env.DATABASE_URL;
 
@@ -87,6 +88,9 @@ before(async () => {
       "utf8",
     ),
   );
+  await pool.query(
+    await readFile("migrations/004_account_security.sql", "utf8"),
+  );
   const app = (await import("../src/server")).default;
   server = await new Promise<Server>((resolve) => {
     const listener = app.listen(0, "127.0.0.1", () => resolve(listener));
@@ -94,13 +98,17 @@ before(async () => {
   const address = server.address();
   if (!address || typeof address === "string") throw new Error("Sin puerto");
   base = "http://127.0.0.1:" + address.port;
-  for (const email of ["owner@example.test", "other@example.test"]) {
+  for (const email of [
+    "owner@example.test",
+    "other@example.test",
+    "admin@example.test",
+  ]) {
     assert.equal(
       (
         await api(
           "/auth/registro",
           "POST",
-          { nombre: "Usuario", email, password: "secreto123" },
+          { nombre: "Usuario", email, password: testPassword },
           "",
         )
       ).status,
@@ -111,7 +119,7 @@ before(async () => {
     await api<LoginResponse>(
       "/auth/login",
       "POST",
-      { email: "owner@example.test", password: "secreto123" },
+      { email: "owner@example.test", password: testPassword },
       "",
     )
   ).data.token;
@@ -119,11 +127,26 @@ before(async () => {
     await api<LoginResponse>(
       "/auth/login",
       "POST",
-      { email: "other@example.test", password: "secreto123" },
+      { email: "other@example.test", password: testPassword },
       "",
     )
   ).data.token;
-  adminToken = jwt.sign({ id: 2, rol: "admin" }, secret, { expiresIn: "1h" });
+  const promoted = await pool.query(
+    "UPDATE usuarios SET rol = 'admin' WHERE email = $1",
+    ["admin@example.test"],
+  );
+  assert.equal(promoted.rowCount, 1);
+
+  const adminLogin = await api<LoginResponse>(
+    "/auth/login",
+    "POST",
+    { email: "admin@example.test", password: testPassword },
+    "",
+  );
+
+  assert.equal(adminLogin.status, 200);
+  assert.equal(adminLogin.data.usuario.rol, "admin");
+  adminToken = adminLogin.data.token;
   const created = await api<Recurso>(
     "/recursos",
     "POST",
@@ -166,7 +189,7 @@ test("registro, login y JSON inválido producen errores de cliente", async () =>
       await api("/auth/registro", "POST", {
         nombre: "Otro",
         email: " OWNER@EXAMPLE.TEST ",
-        password: "secreto123",
+        password: testPassword,
       })
     ).status,
     409,
@@ -176,7 +199,7 @@ test("registro, login y JSON inválido producen errores de cliente", async () =>
       await api(
         "/auth/login",
         "POST",
-        { email: " OWNER@EXAMPLE.TEST ", password: "secreto123" },
+        { email: " OWNER@EXAMPLE.TEST ", password: testPassword },
         "",
       )
     ).status,
@@ -203,9 +226,21 @@ test("autenticación devuelve 401 y permisos insuficientes 403", async () => {
     (await api("/recursos", "GET", undefined, "invalid")).status,
     401,
   );
-  const expired = jwt.sign({ id: 2, rol: "usuario" }, secret, {
-    expiresIn: -1,
-  });
+  const ownerPayload = jwt.verify(owner, secret);
+  assert.ok(typeof ownerPayload !== "string");
+
+  const expired = jwt.sign(
+    {
+      id: ownerPayload.id,
+      rol: ownerPayload.rol,
+      version_sesion: ownerPayload.version_sesion,
+    },
+    secret,
+    {
+      algorithm: "HS256",
+      expiresIn: -1,
+    },
+  );
   assert.equal((await api("/recursos", "GET", undefined, expired)).status, 401);
   assert.equal(
     (await api("/recursos", "POST", { nombre: "No permitido" })).status,
