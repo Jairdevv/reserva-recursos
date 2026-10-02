@@ -15,6 +15,7 @@ export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
   const { estado, listo, reintentar } = useConexion();
+  const [mostrarPassword, setMostrarPassword] = useState(false);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -68,13 +69,33 @@ export default function Login() {
             onChange={(e) => setEmail(e.target.value)}
             required
           />
-          <input
-            type="password"
-            placeholder="Contraseña"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
+          <div className="auth-password">
+            <input
+              id="registro-password"
+              aria-label="Contraseña"
+              type={mostrarPassword ? "text" : "password"}
+              placeholder="Contraseña"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              minLength={8}
+              autoComplete="new-password"
+            />
+            <button
+              type="button"
+              className="auth-password-toggle"
+              aria-label={mostrarPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+              aria-pressed={mostrarPassword}
+              aria-controls="registro-password"
+              onClick={() => setMostrarPassword((visible) => !visible)}
+            >
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" />
+                <circle cx="12" cy="12" r="3" />
+                {mostrarPassword && <path d="m3 3 18 18" />}
+              </svg>
+            </button>
+          </div>
           <button
             type="submit"
             className="btn btn-primary"
