@@ -1,14 +1,12 @@
-import type { Request, Response, NextFunction } from "express";
+import type { RequestHandler } from "express";
+import { HttpError } from "../utils/errors";
 
-export function verificarAdmin(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) {
-  if (req.usuario?.rol !== "admin") {
-    return res
-      .status(403)
-      .json({ error: "Requiere permisos de administrador" });
+export const verificarAdmin: RequestHandler = (req, _res, next) => {
+  if (!req.usuario) {
+    throw new HttpError(401, "Autenticación requerida");
+  }
+  if (req.usuario.rol !== "admin") {
+    throw new HttpError(403, "Requiere permisos de administrador");
   }
   next();
-}
+};

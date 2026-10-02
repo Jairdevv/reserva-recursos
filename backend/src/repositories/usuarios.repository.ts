@@ -22,3 +22,22 @@ export async function buscarUsuarioPorEmail(
   );
   return result.rows[0] ?? null;
 }
+
+export async function buscarUsuarioPorId(id: number): Promise<Usuario | null> {
+  const result = await pool.query<Usuario>(
+    `
+    SELECT
+      id,
+      nombre,
+      email,
+      rol,
+      activo,
+      version_sesion
+    FROM usuarios
+    WHERE id = $1
+    `,
+    [id],
+  );
+
+  return result.rows[0] ?? null;
+}

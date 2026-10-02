@@ -1,22 +1,63 @@
 import jwt from "jsonwebtoken";
 import type { RequestHandler } from "express";
 import { config } from "../config/env";
+import { buscarUsuarioPorId } from "../repositories/usuarios.repository";
+import { HttpError } from "../utils/errors";
 
-export const verificarToken: RequestHandler = (req, res, next) => {
-  const match = req.headers.authorization?.match(/^Bearer (\S+)$/i);
+export const verificarToken: RequestHandler = async (req, res, next) => {
+  const authorization = req.headers.authorization;
+  if (!authorization) {
+    throw new HttpError(401, "Token requerido");
+  }
+
+  const match = authorization.match(/^Bearer (\S+)$/i);
   if (!match) {
-    res.status(401).json({ error: "Token requerido" });
-    return;
+    throw new HttpError(401, "Token inválido");
   }
+  let payload: string | jwt.JwtPayload;
+
   try {
-    const payload = jwt.verify(match[1], config.jwtSecret, { algorithms: ["HS256"] });
-    if (typeof payload === "string" || !Number.isSafeInteger(payload.id) ||
-        payload.id <= 0 || !["usuario", "admin"].includes(payload.rol)) {
-      throw new Error("Token inválido");
+    payload = jwt.verify(match[1], config.jwtSecret, {
+      algorithms: ["HS256"],
+    });
+  } catch (error) {
+    if (error instanceof jwt.TokenExpiredError) {
+      throw new HttpError(401, "Token expirado");
     }
-    req.usuario = { id: payload.id, rol: payload.rol };
-    next();
-  } catch {
-    res.status(401).json({ error: "Token inválido o expirado" });
+
+    if (
+      error instanceof jwt.JsonWebTokenError ||
+      error instanceof jwt.NotBeforeError
+    ) {
+      throw new HttpError(401, "Token inválido");
+    }
+
+    throw error;
   }
+
+  if (
+    typeof payload === "string" ||
+    !Number.isSafeInteger(payload.id) ||
+    !Number.isSafeInteger(payload.version_sesion) ||
+    payload.id <= 0 ||
+    payload.version_sesion < 0
+  ) {
+    throw new HttpError(401, "Token inválido");
+  }
+
+  const usuario = await buscarUsuarioPorId(payload.id);
+  if (
+    !usuario ||
+    !usuario.activo ||
+    usuario.version_sesion !== payload.version_sesion
+  ) {
+    throw new HttpError(401, "Usuario no encontrado");
+  }
+
+  req.usuario = {
+    id: usuario.id,
+    rol: usuario.rol,
+    version_sesion: usuario.version_sesion,
+  };
+  next();
 };

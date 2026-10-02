@@ -5,6 +5,8 @@ export interface Usuario {
   password_hash: string;
   rol: "usuario" | "admin";
   creado_en: Date;
+  activo: boolean;
+  version_sesion: number;
 }
 
 export type RegistroResponse = Pick<Usuario, "id" | "nombre" | "email">;
