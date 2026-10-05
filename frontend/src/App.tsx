@@ -12,6 +12,7 @@ import AdminRoute from "./AdminRoute";
 import AppLayout from "./components/AppLayout";
 import { useConexion } from "./useConexion";
 import "./App.css";
+import "./styles/Theme.css";
 
 const ReservarRecurso = lazy(() => import("./pages/ReservarRecurso"));
 

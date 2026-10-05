@@ -5,6 +5,9 @@ import { positiveId } from "../utils/validation";
 export async function listar(_req: Request, res: Response) {
   res.json(await service.listarRecursos());
 }
+export async function listarCategorias(_req: Request, res: Response) {
+  res.json(await service.listarCategorias());
+}
 export async function obtenerPorId(req: Request, res: Response) {
   res.json(await service.obtenerRecursoPorId(positiveId(req.params.id)));
 }

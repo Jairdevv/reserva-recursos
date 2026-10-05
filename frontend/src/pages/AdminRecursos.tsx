@@ -4,13 +4,14 @@ import { Link, Navigate } from "react-router-dom";
 
 import {
   getRecursos,
+  getCategorias,
   crearRecurso,
   actualizarRecurso,
   desactivarRecurso,
 } from "../services";
 import { errorMessage } from "../api";
 import { useSession } from "../session";
-import type { NuevoRecurso, Recurso } from "../types";
+import type { Categoria, NuevoRecurso, Recurso } from "../types";
 
 import "../styles/forms.css";
 
@@ -48,6 +49,8 @@ function PanelRecursos() {
   const [nombre, setNombre] = useState("");
   const [descripcion, setDescripcion] = useState("");
   const [capacidad, setCapacidad] = useState("");
+  const [categorias, setCategorias] = useState<Categoria[]>([]);
+  const [categoriaId, setCategoriaId] = useState("");
 
   const [guardando, setGuardando] = useState(false);
   const [desactivandoId, setDesactivandoId] = useState<number | null>(null);
@@ -65,11 +68,12 @@ function PanelRecursos() {
     let vigente = true;
     const controller = new AbortController();
 
-    getRecursos(controller.signal)
-      .then((datos) => {
+    Promise.all([getRecursos(controller.signal), getCategorias(controller.signal)])
+      .then(([datos, categoriasDisponibles]) => {
         if (!vigente) return;
 
         setRecursos(ordenarRecursos(datos));
+        setCategorias(categoriasDisponibles);
         setErrorCarga("");
       })
       .catch((error) => {
@@ -94,6 +98,7 @@ function PanelRecursos() {
     setNombre("");
     setDescripcion("");
     setCapacidad("");
+    setCategoriaId("");
   }
 
   function cancelarEdicion() {
@@ -110,6 +115,7 @@ function PanelRecursos() {
     setEditandoId(recurso.id);
     setNombre(recurso.nombre);
     setDescripcion(recurso.descripcion ?? "");
+    setCategoriaId(recurso.categoria_id === null ? "" : String(recurso.categoria_id));
     setCapacidad(
       recurso.capacidad === null ? "" : String(recurso.capacidad),
     );
@@ -152,6 +158,7 @@ function PanelRecursos() {
       nombre: nombreLimpio,
       descripcion: descripcion.trim() || null,
       capacidad: capacidadNumero,
+      categoria_id: categoriaId === "" ? null : Number(categoriaId),
     };
 
     const id = editandoId;
@@ -301,6 +308,12 @@ function PanelRecursos() {
               required
             />
 
+            <label htmlFor="recurso-categoria">Categoría</label>
+            <select id="recurso-categoria" value={categoriaId} onChange={event => setCategoriaId(event.target.value)}>
+              <option value="">Sin categoría</option>
+              {categorias.map(categoria => <option key={categoria.id} value={categoria.id}>{categoria.nombre}</option>)}
+            </select>
+
             <label htmlFor="recurso-descripcion">
               Descripción — opcional
             </label>
@@ -428,6 +441,7 @@ function PanelRecursos() {
                   <th scope="col">Nombre</th>
                   <th scope="col">Descripción</th>
                   <th scope="col">Capacidad</th>
+                  <th scope="col">Categoría</th>
                   <th scope="col">Acciones</th>
                 </tr>
               </thead>
@@ -449,6 +463,7 @@ function PanelRecursos() {
                     <td style={{ padding: "1rem 0.5rem" }}>
                       {recurso.capacidad ?? "Sin especificar"}
                     </td>
+                    <td style={{ padding: "1rem 0.5rem" }}>{recurso.categoria_nombre ?? "Sin categoría"}</td>
 
                     <td style={{ padding: "1rem 0.5rem" }}>
                       <div

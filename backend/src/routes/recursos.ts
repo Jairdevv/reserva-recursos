@@ -1,27 +1,28 @@
 import { Router } from "express";
 import * as recursosController from "../controllers/recursos.controller";
-import { verificarToken } from "../middleware/auth";
+import { autenticarUsuario } from "../middleware/auth";
 import { verificarAdmin } from "../middleware/verificarAdmin";
 
 const router = Router();
+router.get("/categorias", autenticarUsuario, recursosController.listarCategorias);
 
-router.get("/recursos", verificarToken, recursosController.listar);
-router.get("/recursos/:id", verificarToken, recursosController.obtenerPorId);
+router.get("/recursos", autenticarUsuario, recursosController.listar);
+router.get("/recursos/:id", autenticarUsuario, recursosController.obtenerPorId);
 router.post(
   "/recursos",
-  verificarToken,
+  autenticarUsuario,
   verificarAdmin,
   recursosController.crear,
 );
 router.put(
   "/recursos/:id",
-  verificarToken,
+  autenticarUsuario,
   verificarAdmin,
   recursosController.actualizar,
 );
 router.delete(
   "/recursos/:id",
-  verificarToken,
+  autenticarUsuario,
   verificarAdmin,
   recursosController.eliminar,
 );

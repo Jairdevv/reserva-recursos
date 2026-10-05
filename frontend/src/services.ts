@@ -6,7 +6,13 @@ import type {
   ReservaConRecurso,
   RegistroResponse,
   NuevoRecurso,
+  Categoria,
 } from "./types";
+
+export const getCategorias = async (signal?: AbortSignal): Promise<Categoria[]> => {
+  const { data } = await api.get<Categoria[]>("/categorias", { signal });
+  return data;
+};
 
 export const login = async (
   email: string,

@@ -44,6 +44,20 @@ esas cuentas antes de reintentar. Las restricciones CHECK son NOT VALID para no
 alterar registros históricos inválidos; sí se comprueban al insertar o actualizar.
 Antes de validarlas globalmente, revisar y corregir esos registros.
 
+## Categorías de recursos
+
+La migración `005_resource_categories.sql` crea `categorias` y la referencia
+`recursos.categoria_id`. Ejecuta `npm run migrate` antes de iniciar el backend
+actualizado. Incluye Salas de reunión, Canchas deportivas, Laboratorios,
+Multimedia y Otros. Los recursos existentes quedan sin categoría; asígnala
+desde Administración al editar cada recurso.
+
+`GET /categorias` requiere autenticación y devuelve `{ id, nombre }`.
+Las respuestas de recursos incluyen `categoria_id` y `categoria_nombre`.
+Crear o editar un recurso admite `categoria_id` como entero positivo o `null`;
+omitirlo al editar conserva la asignación. Solo los administradores pueden
+modificar recursos; una categoría inexistente devuelve 400.
+
 ## Ejecución
 
 En backend:

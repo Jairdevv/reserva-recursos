@@ -18,11 +18,18 @@ export interface Recurso {
   descripcion: string | null;
   capacidad: number | null;
   activo: boolean;
+  categoria_id: number | null;
+  categoria_nombre: string | null;
 }
 export interface NuevoRecurso {
   nombre: string;
   descripcion?: string | null;
   capacidad?: number | null;
+  categoria_id?: number | null;
+}
+export interface Categoria {
+  id: number;
+  nombre: string;
 }
 
 export interface Reserva {

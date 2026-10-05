@@ -99,7 +99,7 @@ function CalendarioRecurso({ recursoId }: { recursoId: number }) {
         start: reserva.inicio,
         end: reserva.fin,
         display: "background",
-        color: "#C0524A",
+        color: "#ef4444",
       })));
       ready.current = true;
       setDisponible(true);
