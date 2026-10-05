@@ -194,7 +194,9 @@ test("categorías persisten, se pueden cambiar y no aceptan referencias inválid
   assert.equal(changed.data.categoria_nombre, categorias.data[1].nombre);
   await assert.rejects(
     pool.query("DELETE FROM categorias WHERE id = $1", [categorias.data[1].id]),
-    (error: { code: string }) => error.code === "23503",
+    (error: { code: string; constraint: string }) =>
+      ["23503", "23001"].includes(error.code) &&
+      error.constraint === "recursos_categoria_id_fkey",
   );
   assert.equal((await api(url, "PUT", { categoria_id: categoria.id })).status, 403);
   for (const categoria_id of [0, -1, 1.5, "1", 2147483647]) {
