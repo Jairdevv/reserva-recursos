@@ -4,7 +4,7 @@ import { config } from "../config/env";
 import { buscarUsuarioPorId } from "../repositories/usuarios.repository";
 import { HttpError } from "../utils/errors";
 
-export const verificarToken: RequestHandler = async (req, res, next) => {
+export const autenticarUsuario: RequestHandler = async (req, res, next) => {
   const authorization = req.headers.authorization;
   if (!authorization) {
     throw new HttpError(401, "Token requerido");

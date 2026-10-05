@@ -1,6 +1,6 @@
 import * as repo from "../repositories/recursos.repository";
 import type { CrearRecursoInput, ActualizarRecursoInput } from "../types";
-import { HttpError } from "../utils/errors";
+import { HttpError, databaseCode } from "../utils/errors";
 import { objectInput, positiveId, textInput } from "../utils/validation";
 
 export function validarRecurso(
@@ -11,7 +11,7 @@ export function validarRecurso(
   const result: ActualizarRecursoInput = {};
   if (
     Object.keys(data).some(
-      (key) => !["nombre", "descripcion", "capacidad"].includes(key),
+      (key) => !["nombre", "descripcion", "capacidad", "categoria_id"].includes(key),
     )
   ) {
     throw new HttpError(400, "Campos de recurso no admitidos");
@@ -39,12 +39,19 @@ export function validarRecurso(
     }
     result.capacidad = data.capacidad as number | null;
   }
+  if ("categoria_id" in data) {
+    if (data.categoria_id !== null && typeof data.categoria_id !== "number") {
+      throw new HttpError(400, "Categoría inválida");
+    }
+    result.categoria_id = data.categoria_id === null ? null : positiveId(data.categoria_id);
+  }
   if (!Object.keys(result).length)
     throw new HttpError(400, "No hay campos para actualizar");
   return result;
 }
 
 export const listarRecursos = () => repo.obtenerRecursos();
+export const listarCategorias = () => repo.obtenerCategorias();
 
 export async function obtenerRecursoPorId(id: number) {
   const recurso = await repo.obtenerRecursoPorId(positiveId(id));
@@ -58,14 +65,26 @@ export async function requerirRecursoActivo(id: number) {
   return recurso;
 }
 
-export const crearRecurso = (value: unknown) =>
-  repo.crearRecurso(validarRecurso(value) as CrearRecursoInput);
+export async function crearRecurso(value: unknown) {
+  const datos = validarRecurso(value) as CrearRecursoInput;
+  try {
+    return await repo.crearRecurso(datos);
+  } catch (error) {
+    if (databaseCode(error) === "23503") throw new HttpError(400, "Categoría no encontrada");
+    throw error;
+  }
+}
 
 export async function actualizarRecurso(id: number, value: unknown) {
   const data = validarRecurso(value, true);
-  const recurso = await repo.actualizarRecurso(positiveId(id), data);
-  if (!recurso) throw new HttpError(404, "Recurso no encontrado");
-  return recurso;
+  try {
+    const recurso = await repo.actualizarRecurso(positiveId(id), data);
+    if (!recurso) throw new HttpError(404, "Recurso no encontrado");
+    return recurso;
+  } catch (error) {
+    if (databaseCode(error) === "23503") throw new HttpError(400, "Categoría no encontrada");
+    throw error;
+  }
 }
 
 export async function eliminarRecurso(id: number) {

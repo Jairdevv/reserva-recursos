@@ -91,6 +91,7 @@ before(async () => {
   await pool.query(
     await readFile("migrations/004_account_security.sql", "utf8"),
   );
+  await pool.query(await readFile("migrations/005_resource_categories.sql", "utf8"));
   const app = (await import("../src/server")).default;
   server = await new Promise<Server>((resolve) => {
     const listener = app.listen(0, "127.0.0.1", () => resolve(listener));
@@ -171,6 +172,40 @@ after(async () => {
     await admin.query('DROP SCHEMA IF EXISTS "' + schema + '" CASCADE');
     await admin.end();
   }
+});
+
+test("categorías persisten, se pueden cambiar y no aceptan referencias inválidas", async () => {
+  assert.equal((await api("/categorias", "GET", undefined, "")).status, 401);
+  const categorias = await api<{ id: number; nombre: string }[]>("/categorias");
+  assert.equal(categorias.status, 200);
+  assert.equal(categorias.data.length, 5);
+  const categoria = categorias.data[0];
+  const historico = await api<Recurso>("/recursos/1");
+  assert.equal(historico.data.categoria_id, null);
+  const created = await api<Recurso>("/recursos", "POST", { nombre: "Categoría persistente", categoria_id: categoria.id }, adminToken);
+  assert.equal(created.status, 201);
+  assert.equal(created.data.categoria_nombre, categoria.nombre);
+  const url = "/recursos/" + created.data.id;
+  assert.equal((await api<Recurso>(url)).data.categoria_id, categoria.id);
+  const kept = await api<Recurso>(url, "PUT", { descripcion: "Actualizada" }, adminToken);
+  assert.equal(kept.data.categoria_id, categoria.id);
+  const changed = await api<Recurso>(url, "PUT", { categoria_id: categorias.data[1].id }, adminToken);
+  assert.equal(changed.status, 200);
+  assert.equal(changed.data.categoria_nombre, categorias.data[1].nombre);
+  await assert.rejects(
+    pool.query("DELETE FROM categorias WHERE id = $1", [categorias.data[1].id]),
+    (error: { code: string }) => error.code === "23503",
+  );
+  assert.equal((await api(url, "PUT", { categoria_id: categoria.id })).status, 403);
+  for (const categoria_id of [0, -1, 1.5, "1", 2147483647]) {
+    assert.equal((await api("/recursos", "POST", { nombre: "Inválido", categoria_id }, adminToken)).status, 400);
+    assert.equal((await api(url, "PUT", { categoria_id }, adminToken)).status, 400);
+  }
+  const cleared = await api<Recurso>(url, "PUT", { categoria_id: null }, adminToken);
+  assert.equal(cleared.status, 200);
+  assert.equal(cleared.data.categoria_id, null);
+  assert.equal(cleared.data.categoria_nombre, null);
+  assert.equal((await api<Recurso[]>("/recursos")).data.find(item => item.id === created.data.id)?.categoria_id, null);
 });
 
 test("registro, login y JSON inválido producen errores de cliente", async () => {
