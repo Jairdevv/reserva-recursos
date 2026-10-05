@@ -1,15 +1,21 @@
 :root {
-  --bg: #1b1f2a;
-  --bg-surface: #2e3341;
-  --text: #edeae3;
-  --text-muted: #9aa0ae;
-  --accent: #f2b705;
-  --ok: #4e7c6d;
-  --busy: #c0524a;
-  --border: #3a4051;
+  --bg: #0f172a;
+  --bg-surface: #182033;
+  --bg-input: #222b3e;
+  --text: #d7c4ad;
+  --text-heading: #dce2ff;
+  --text-muted: #a8a7b5;
+  --accent: #f59e0b;
+  --accent-soft: #ffc477;
+  --secondary: #10b981;
+  --ok: #6ee7b7;
+  --busy: #ef4444;
+  --danger-soft: #ffb4b4;
+  --border: #344057;
+  --radius: 14px;
 
-  --font-display: "Fraunces", Georgia, serif;
-  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --font-display: "Newsreader", Georgia, serif;
+  --font-mono: "Space Mono", ui-monospace, monospace;
 }
 
 * {
