@@ -102,6 +102,13 @@ fechas UTC para calcular días locales. La selección es una propuesta: el servi
 decide si el horario sigue libre al guardar. No se impone horario comercial ni
 duración máxima de reserva; esas políticas requieren una definición del negocio.
 
+La selección rápida del frontend ofrece sugerencias entre 08:00 y 20:00 en
+bloques de 120 minutos, en la zona local del navegador. Se configura en
+`frontend/src/config/reservas.ts`. El formulario personalizado y el calendario
+permiten otros intervalos; estas sugerencias no restringen las reservas de la API.
+Si se definen horarios de apertura por recurso, deben persistirse y validarse
+en el backend para aplicarse a todos los clientes.
+
 Si la instalación histórica usaba otra zona, revisar este supuesto antes de
 desplegar estos cambios sobre otra base.
 
@@ -142,3 +149,31 @@ En frontend:
 
 La suite cubre validación, fechas, autenticación, permisos, reservas simultáneas,
 cancelación, conservación del historial y estado de sesión del frontend.
+
+## Reglas de reserva por recurso
+
+La migración 006 añade `recursos.reglas_reserva`. Ejecuta `npm run migrate` antes
+ de arrancar el backend actualizado. `null` conserva el comportamiento sin límites.
+Desde administración se pueden habilitar días (0 domingo a 6 sábado), apertura,
+cierre y duración mínima/máxima en minutos. La zona de las reglas es America/Bogota;
+el navegador continúa mostrando y capturando la hora local del usuario.
+Las ventanas son diarias, sin cruce de medianoche. El backend valida las reglas
+al guardar el recurso y dentro de la transacción de reserva, bajo bloqueo de fila,
+para coordinar cambios concurrentes. Las reservas existentes no se modifican.
+
+## Recursos inactivos y reactivación
+
+`GET /admin/recursos` lista recursos activos e inactivos y requiere rol admin.
+`PATCH /recursos/:id/reactivar` reactiva un recurso, también solo para admins.
+Repetir la reactivación es idempotente. Se conservan datos y reservas: un horario
+ya reservado seguirá ocupado. El catálogo `GET /recursos` conserva su filtro de
+activos. Administración ofrece filtros Activos, Inactivos y Todos.
+
+## Gestión de categorías
+
+Administración permite crear, renombrar y eliminar categorías. Las rutas
+`POST /categorias`, `PUT /categorias/:id` y `DELETE /categorias/:id` requieren
+administrador. El nombre es obligatorio (hasta 100 caracteres); nombres idénticos
+producen 409. Renombrar conserva las asignaciones. La clave foránea impide eliminar
+categorías referenciadas por recursos activos o inactivos y la API responde 409.
+No se necesita una migración adicional si ya se aplicó la migración 005.

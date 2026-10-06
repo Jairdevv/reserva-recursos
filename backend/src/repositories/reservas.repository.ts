@@ -1,5 +1,6 @@
 import pool from "../config/db";
 import { HttpError } from "../utils/errors";
+import { comprobarHorario } from "../utils/reglasReserva";
 import type { Reserva, ReservaConRecurso, Disponibilidad } from "../types";
 
 // Los TSRANGE existentes representan horas civiles de America/Bogota.
@@ -53,12 +54,13 @@ export async function crearReserva(
     await client.query("BEGIN");
     // FOR SHARE se coordina con UPDATE activo=false, incluso bajo concurrencia.
     const recurso = await client.query(
-      "SELECT activo FROM recursos WHERE id = $1 FOR SHARE",
+      "SELECT activo, reglas_reserva FROM recursos WHERE id = $1 FOR SHARE",
       [recursoId],
     );
     if (!recurso.rowCount) throw new HttpError(404, "Recurso no encontrado");
     if (!recurso.rows[0].activo)
       throw new HttpError(409, "El recurso está inactivo");
+    comprobarHorario(recurso.rows[0].reglas_reserva, inicio, fin);
     const result = await client.query<Reserva>(
       `INSERT INTO reservas (recurso_id, usuario_id, rango_horario)
        VALUES ($1, $2, tsrange($3::timestamptz AT TIME ZONE 'America/Bogota',

@@ -2,6 +2,7 @@ import * as repo from "../repositories/recursos.repository";
 import type { CrearRecursoInput, ActualizarRecursoInput } from "../types";
 import { HttpError, databaseCode } from "../utils/errors";
 import { objectInput, positiveId, textInput } from "../utils/validation";
+import { validarReglas } from "../utils/reglasReserva";
 
 export function validarRecurso(
   value: unknown,
@@ -11,7 +12,7 @@ export function validarRecurso(
   const result: ActualizarRecursoInput = {};
   if (
     Object.keys(data).some(
-      (key) => !["nombre", "descripcion", "capacidad", "categoria_id"].includes(key),
+      (key) => !["nombre", "descripcion", "capacidad", "categoria_id", "reglas_reserva"].includes(key),
     )
   ) {
     throw new HttpError(400, "Campos de recurso no admitidos");
@@ -45,12 +46,19 @@ export function validarRecurso(
     }
     result.categoria_id = data.categoria_id === null ? null : positiveId(data.categoria_id);
   }
+  if ("reglas_reserva" in data) result.reglas_reserva = validarReglas(data.reglas_reserva);
   if (!Object.keys(result).length)
     throw new HttpError(400, "No hay campos para actualizar");
   return result;
 }
 
 export const listarRecursos = () => repo.obtenerRecursos();
+export const listarRecursosAdministracion = () => repo.obtenerRecursos(true);
+export async function reactivarRecurso(id: number) {
+  const recurso = await repo.reactivarRecurso(positiveId(id));
+  if (!recurso) throw new HttpError(404, "Recurso no encontrado");
+  return recurso;
+}
 export const listarCategorias = () => repo.obtenerCategorias();
 
 export async function obtenerRecursoPorId(id: number) {

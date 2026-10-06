@@ -13,6 +13,17 @@ export const getCategorias = async (signal?: AbortSignal): Promise<Categoria[]> 
   const { data } = await api.get<Categoria[]>("/categorias", { signal });
   return data;
 };
+export const crearCategoria = async (nombre: string): Promise<Categoria> => {
+  const { data } = await api.post<Categoria>("/categorias", { nombre });
+  return data;
+};
+export const renombrarCategoria = async (id: number, nombre: string): Promise<Categoria> => {
+  const { data } = await api.put<Categoria>(`/categorias/${id}`, { nombre });
+  return data;
+};
+export const eliminarCategoria = async (id: number): Promise<void> => {
+  await api.delete(`/categorias/${id}`);
+};
 
 export const login = async (
   email: string,
@@ -40,6 +51,14 @@ export const registro = async (
 
 export const getRecursos = async (signal?: AbortSignal): Promise<Recurso[]> => {
   const { data } = await api.get<Recurso[]>("/recursos", { signal });
+  return data;
+};
+export const getRecursosAdministracion = async (signal?: AbortSignal): Promise<Recurso[]> => {
+  const { data } = await api.get<Recurso[]>("/admin/recursos", { signal });
+  return data;
+};
+export const reactivarRecurso = async (id: number): Promise<Recurso> => {
+  const { data } = await api.patch<Recurso>(`/recursos/${id}/reactivar`);
   return data;
 };
 
