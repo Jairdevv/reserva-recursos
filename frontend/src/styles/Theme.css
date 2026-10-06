@@ -379,6 +379,26 @@ body .catalog-tabs button[aria-pressed="true"] {
   background: var(--accent);
   color: var(--bg);
 }
+/* Navigation collapses before links and account controls run out of space. */
+body .workspace .workspace-header { flex-wrap: nowrap; }
+body .workspace .workspace-brand { flex-shrink: 0; }
+body .workspace-menu { display: flex; align-items: center; gap: 20px; flex: 1; min-width: 0; }
+body .workspace-menu nav { min-width: 0; }
+body .workspace-menu .workspace-user { min-width: 0; flex-shrink: 0; }
+body .workspace-menu .workspace-user span { max-width: clamp(80px, 12vw, 180px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+body .workspace-menu .workspace-user .btn { white-space: nowrap; flex-shrink: 0; }
+body .workspace-menu-toggle { display: none; }
+@media (max-width: 1000px) {
+  body .workspace .workspace-header { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; }
+  body .workspace-menu-toggle { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg-input); color: var(--text-heading); cursor: pointer; font-size: .75rem; }
+  body .workspace-menu-toggle[aria-expanded="true"] { border-color: var(--accent-soft); color: var(--accent-soft); }
+  body .workspace-menu { display: none; grid-column: 1 / -1; }
+  body .workspace-menu.is-open { display: flex; align-items: stretch; flex-direction: column; gap: 16px; border-top: 1px solid var(--border); padding-top: 16px; }
+  body .workspace .workspace-menu nav { display: flex; flex-direction: column; flex-basis: auto; order: 0; gap: 6px; }
+  body .workspace .workspace-menu nav a { width: 100%; min-height: 44px; padding: 12px 14px; }
+  body .workspace-menu .workspace-user { width: 100%; margin: 0; padding-top: 16px; border-top: 1px solid var(--border); justify-content: space-between; gap: 12px; }
+  body .workspace-menu .workspace-user span { display: block; flex: 1; max-width: none; min-width: 0; font-size: .75rem; }
+}
 @media (max-width: 650px) {
   body .workspace .workspace-header {
     gap: 12px;
