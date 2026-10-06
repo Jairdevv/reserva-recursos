@@ -1,3 +1,4 @@
+import type { ReglasReserva } from "../utils/reglasReserva";
 export interface Recurso {
   id: number;
   nombre: string;
@@ -6,6 +7,7 @@ export interface Recurso {
   activo: boolean;
   categoria_id: number | null;
   categoria_nombre: string | null;
+  reglas_reserva: ReglasReserva | null;
   creado_en: Date;
 }
 export interface CrearRecursoInput {
@@ -13,5 +15,6 @@ export interface CrearRecursoInput {
   descripcion?: string | null;
   capacidad?: number | null;
   categoria_id?: number | null;
+  reglas_reserva?: ReglasReserva | null;
 }
 export type ActualizarRecursoInput = Partial<CrearRecursoInput>;

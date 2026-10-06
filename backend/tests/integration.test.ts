@@ -92,6 +92,7 @@ before(async () => {
     await readFile("migrations/004_account_security.sql", "utf8"),
   );
   await pool.query(await readFile("migrations/005_resource_categories.sql", "utf8"));
+  await pool.query(await readFile("migrations/006_resource_booking_rules.sql", "utf8"));
   const app = (await import("../src/server")).default;
   server = await new Promise<Server>((resolve) => {
     const listener = app.listen(0, "127.0.0.1", () => resolve(listener));
@@ -208,6 +209,84 @@ test("categorías persisten, se pueden cambiar y no aceptan referencias inválid
   assert.equal(cleared.data.categoria_id, null);
   assert.equal(cleared.data.categoria_nombre, null);
   assert.equal((await api<Recurso[]>("/recursos")).data.find(item => item.id === created.data.id)?.categoria_id, null);
+});
+
+test("reglas persistidas bloquean reservas fuera de horario y conservan actualizaciones parciales", async () => {
+  const reglas = { apertura: "08:00", cierre: "20:00", minutos_minimos: 30, minutos_maximos: 120, dias: [0, 1, 2, 3, 4, 5, 6] };
+  const created = await api<Recurso>("/recursos", "POST", { nombre: "Con horario", reglas_reserva: reglas }, adminToken);
+  assert.equal(created.status, 201);
+  assert.deepEqual(created.data.reglas_reserva, reglas);
+  const url = "/recursos/" + created.data.id;
+  const changed = await api<Recurso>(url, "PUT", { nombre: "Con horario editado" }, adminToken);
+  assert.deepEqual(changed.data.reglas_reserva, reglas);
+  for (const [inicio, fin] of [["07:00", "08:00"], ["08:00", "08:15"], ["08:00", "11:00"], ["19:00", "21:00"]]) {
+    assert.equal((await api("/reservas", "POST", { recurso_id: created.data.id, inicio: `2099-01-02T${inicio}:00-05:00`, fin: `2099-01-02T${fin}:00-05:00` })).status, 400);
+  }
+  assert.equal((await api("/reservas", "POST", { recurso_id: created.data.id, inicio: "2099-01-02T13:00:00Z", fin: "2099-01-02T13:30:00Z" })).status, 201);
+  assert.equal((await api(url, "PUT", { reglas_reserva: { ...reglas, dias: [] } }, adminToken)).status, 400);
+  const cleared = await api<Recurso>(url, "PUT", { reglas_reserva: null }, adminToken);
+  assert.equal(cleared.data.reglas_reserva, null);
+  assert.equal((await api("/reservas", "POST", { recurso_id: created.data.id, inicio: "2099-01-02T06:00:00-05:00", fin: "2099-01-02T07:00:00-05:00" })).status, 201);
+});
+
+test("solo administradores listan inactivos y reactivan conservando historial", async () => {
+  assert.equal((await api("/admin/recursos", "GET", undefined, "")).status, 401);
+  assert.equal((await api("/admin/recursos")).status, 403);
+  const created = await api<Recurso>("/recursos", "POST", { nombre: "Reactivable", capacidad: 3 }, adminToken);
+  assert.equal(created.status, 201);
+  const id = created.data.id;
+  const body = { recurso_id: id, inicio: "2099-01-03T10:00:00-05:00", fin: "2099-01-03T11:00:00-05:00" };
+  const reserva = await api<Reserva>("/reservas", "POST", body);
+  assert.equal(reserva.status, 201);
+  assert.equal((await api(`/recursos/${id}`, "DELETE", undefined, adminToken)).status, 204);
+  assert.equal((await api<Recurso[]>("/recursos")).data.some(item => item.id === id), false);
+  const listado = await api<Recurso[]>("/admin/recursos", "GET", undefined, adminToken);
+  assert.equal(listado.status, 200);
+  assert.equal(listado.data.find(item => item.id === id)?.activo, false);
+  assert.equal((await api(`/recursos/${id}/reactivar`, "PATCH")).status, 403);
+  assert.equal((await api(`/recursos/${id}/reactivar`, "PATCH", undefined, "")).status, 401);
+  for (let intento = 0; intento < 2; intento++) {
+    const reactivado = await api<Recurso>(`/recursos/${id}/reactivar`, "PATCH", undefined, adminToken);
+    assert.equal(reactivado.status, 200);
+    assert.equal(reactivado.data.activo, true);
+    assert.equal(reactivado.data.capacidad, 3);
+  }
+  assert.equal((await api<Recurso[]>("/recursos")).data.some(item => item.id === id), true);
+  assert.equal((await api<ReservaConRecurso[]>("/mis-reservas")).data.some(item => item.id === reserva.data.id), true);
+  assert.equal((await api("/reservas", "POST", body)).status, 409);
+  assert.equal((await api("/reservas", "POST", { ...body, inicio: "2099-01-03T11:00:00-05:00", fin: "2099-01-03T12:00:00-05:00" })).status, 201);
+  assert.equal((await api("/recursos/2147483647/reactivar", "PATCH", undefined, adminToken)).status, 404);
+  assert.equal((await api("/recursos/no-valido/reactivar", "PATCH", undefined, adminToken)).status, 400);
+});
+
+test("administración de categorías valida permisos, nombres y referencias de inactivos", async () => {
+  assert.equal((await api("/categorias", "POST", { nombre: "Aulas" }, "")).status, 401);
+  assert.equal((await api("/categorias", "POST", { nombre: "Aulas" })).status, 403);
+  for (const body of [{ nombre: " " }, { nombre: 10 }, { nombre: "x".repeat(101) }, { nombre: "Aulas", activo: true }]) {
+    assert.equal((await api("/categorias", "POST", body, adminToken)).status, 400);
+  }
+  const created = await api<{ id: number; nombre: string }>("/categorias", "POST", { nombre: " Aulas " }, adminToken);
+  assert.equal(created.status, 201);
+  assert.equal(created.data.nombre, "Aulas");
+  assert.equal((await api("/categorias", "POST", { nombre: "Aulas" }, adminToken)).status, 409);
+  const url = "/categorias/" + created.data.id;
+  assert.equal((await api(url, "PUT", { nombre: "Renombrada" })).status, 403);
+  assert.equal((await api(url, "DELETE")).status, 403);
+  assert.equal((await api(url, "PUT", { nombre: "Salas de reunión" }, adminToken)).status, 409);
+  const recurso = await api<Recurso>("/recursos", "POST", { nombre: "Aula referenciada", categoria_id: created.data.id }, adminToken);
+  assert.equal(recurso.status, 201);
+  const renamed = await api<{ nombre: string }>(url, "PUT", { nombre: "Aulas nuevas" }, adminToken);
+  assert.equal(renamed.status, 200);
+  assert.equal((await api<Recurso>("/recursos/" + recurso.data.id)).data.categoria_nombre, "Aulas nuevas");
+  assert.equal((await api(url, "DELETE", undefined, adminToken)).status, 409);
+  await api("/recursos/" + recurso.data.id, "DELETE", undefined, adminToken);
+  assert.equal((await api(url, "DELETE", undefined, adminToken)).status, 409);
+  const unassigned = await api("/recursos/" + recurso.data.id, "PUT", { categoria_id: null }, adminToken);
+  assert.equal(unassigned.status, 200);
+  assert.equal((await api(url, "DELETE", undefined, adminToken)).status, 204);
+  assert.equal((await api(url, "DELETE", undefined, adminToken)).status, 404);
+  assert.equal((await api(url, "PUT", { nombre: "No existe" }, adminToken)).status, 404);
+  assert.equal((await api("/categorias/no-valido", "DELETE", undefined, adminToken)).status, 400);
 });
 
 test("registro, login y JSON inválido producen errores de cliente", async () => {
