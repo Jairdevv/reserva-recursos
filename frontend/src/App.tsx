@@ -1,20 +1,20 @@
 import { lazy, Suspense } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Login from "./pages/Login";
-import Registro from "./pages/Registro";
-import Recursos from "./pages/Recursos";
-import Landing from "./pages/Landing";
-import MisReservas from "./pages/MisReservas";
-import AdminRecursos from "./pages/AdminRecursos";
-import NotFound from "./pages/NotFound";
-import ProtectedRoute from "./ProtectedRoute";
-import AdminRoute from "./AdminRoute";
-import AppLayout from "./components/AppLayout";
-import { useConexion } from "./useConexion";
+import Login from "./features/auth/pages/Login";
+import Registro from "./features/auth/pages/Registro";
+import Recursos from "./features/recursos/pages/Recursos";
+import Landing from "./features/inicio/pages/Landing";
+import MisReservas from "./features/reservas/pages/MisReservas";
+import AdminRecursos from "./features/administracion/pages/AdminRecursos";
+import NotFound from "./shared/pages/NotFound";
+import ProtectedRoute from "./features/auth/components/ProtectedRoute";
+import AdminRoute from "./features/auth/components/AdminRoute";
+import AppLayout from "./shared/components/AppLayout";
+import { useConexion } from "./shared/hooks/useConexion";
 import "./App.css";
-import "./styles/Theme.css";
+import "./shared/styles/Theme.css";
 
-const ReservarRecurso = lazy(() => import("./pages/ReservarRecurso"));
+const ReservarRecurso = lazy(() => import("./features/reservas/pages/ReservarRecurso"));
 
 export default function App() {
   useConexion();
@@ -34,7 +34,7 @@ export default function App() {
             </Suspense>
           } />
           <Route element={<AdminRoute />}>
-            <Route path="/admin/recursos" element={<AdminRecursos />} />
+            <Route path="/admin" element={<AdminRecursos />} />
           </Route>
         </Route>
       </Route>

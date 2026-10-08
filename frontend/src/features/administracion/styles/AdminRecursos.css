@@ -1,0 +1,48 @@
+body .admin-page { max-width: 1200px; min-width: 0; }
+body .admin-page > header { max-width: 70ch; }
+body .admin-page > header h1 { overflow-wrap: anywhere; }
+body .admin-page > header p { color: var(--text-muted); font-size: .85rem; }
+body .admin-page section, body .admin-resource-list { min-width: 0; }
+body .admin-page .admin-resource-form { width: 100%; }
+body .admin-resource-form :is(input, select, textarea) { width: 100%; min-width: 0; max-width: 100%; }
+body .admin-resource-form textarea { resize: vertical; }
+body .admin-form-actions, body .admin-resource-actions { display: flex; flex-wrap: wrap; gap: .75rem; }
+body .admin-resource-count { font-size: .75rem; color: var(--text-muted); margin: 20px 0 14px; }
+body .admin-resource-list { display: flex; flex-wrap: wrap; align-items: stretch; gap: 18px; }
+body .admin-resource-card { display: flex; flex-direction: column; flex: 0 1 calc((100% - 36px) / 3); min-width: 0; padding: 22px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg); overflow-wrap: anywhere; }
+body .admin-resource-card-heading { display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 10px; font-size: .65rem; }
+body .admin-resource-category { color: var(--accent-soft); }
+body .admin-resource-active { color: var(--ok); white-space: nowrap; }
+body .admin-resource-card h3 { font-size: 1.65rem; margin: 20px 0 12px; }
+body .admin-resource-description { font-size: .8rem; line-height: 1.8; margin: 0 0 22px; white-space: pre-wrap; }
+body .admin-resource-details { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin: auto 0 20px; font-size: .75rem; }
+body .admin-resource-details dt { color: var(--text-muted); font-size: .65rem; margin-bottom: 5px; }
+body .admin-resource-details dd { margin: 0; }
+body .admin-resource-actions { padding-top: 18px; border-top: 1px solid var(--border); }
+body .admin-resource-actions button { flex: 1 1 90px; min-height: 44px; max-width: 100%; overflow-wrap: anywhere; }
+@media (max-width: 1050px) { body .admin-resource-card { flex-basis: calc((100% - 18px) / 2); } }
+@media (max-width: 650px) { body .admin-resource-card { flex-basis: 100%; padding: 18px; } }
+@media (max-width: 480px) {
+  body .admin-page section { padding: 16px; }
+  body .admin-page :is(input, select, textarea) { font-size: 16px; }
+  body .admin-form-actions { flex-direction: column; }
+  body .admin-form-actions .btn { width: 100%; }
+}
+body .admin-booking-rules { padding: 16px; border: 1px solid var(--border); border-radius: 8px; }
+body .admin-rule-toggle, body .admin-rule-days label { display: flex; align-items: center; gap: 10px; }
+body .admin-resource-form .admin-booking-rules input[type="checkbox"] { width: 18px; height: 18px; flex: 0 0 18px; accent-color: var(--accent); }
+body .admin-rule-fields { display: flex; flex-wrap: wrap; gap: 12px; }
+body .admin-rule-fields label { flex: 1 1 180px; min-width: 0; }
+body .admin-rule-days { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 18px; }
+body .admin-resource-inactive { color: var(--danger-soft); white-space: nowrap; }
+body .admin-status-filters { margin-bottom: 20px; }
+body .admin-status-filters button[aria-pressed="true"] { background: var(--accent-soft); color: var(--bg); border-color: var(--accent-soft); }
+body .admin-page button[aria-label^="Reactivar"] { background: var(--ok); border-color: var(--ok); color: var(--bg); }
+body .admin-category-form { display: flex; flex-wrap: wrap; align-items: end; gap: 12px; }
+body .admin-category-form label { display: flex; flex-direction: column; gap: 8px; flex: 1 1 240px; min-width: 0; }
+body .admin-category-form input { width: 100%; }
+body .admin-category-list { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 24px; }
+body .admin-category-item { display: flex; flex-direction: column; gap: 18px; flex: 1 1 260px; min-width: 0; padding: 18px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); overflow-wrap: anywhere; }
+body .admin-category-item > span { flex: 1; }
+body .admin-page button[aria-label^="Eliminar categoría"] { background: var(--danger-soft); border-color: var(--danger-soft); color: #681b24; }
+@media (max-width: 480px) { body .admin-category-form .btn { width: 100%; } }

@@ -17,7 +17,7 @@ function setup(initial = {}) {
   };
   const module = { exports: {} };
   const code = ts.transpileModule(
-    fs.readFileSync(path.resolve(__dirname, "../src/session.ts"), "utf8"),
+    fs.readFileSync(path.resolve(__dirname, "../src/features/auth/session.ts"), "utf8"),
     {
       compilerOptions: {
         module: ts.ModuleKind.CommonJS,

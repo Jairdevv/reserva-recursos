@@ -49,8 +49,7 @@ Antes de validarlas globalmente, revisar y corregir esos registros.
 La migración `005_resource_categories.sql` crea `categorias` y la referencia
 `recursos.categoria_id`. Ejecuta `npm run migrate` antes de iniciar el backend
 actualizado. Incluye Salas de reunión, Canchas deportivas, Laboratorios,
-Multimedia y Otros. Los recursos existentes quedan sin categoría; asígnala
-desde Administración al editar cada recurso.
+Multimedia y Otros.
 
 `GET /categorias` requiere autenticación y devuelve `{ id, nombre }`.
 Las respuestas de recursos incluyen `categoria_id` y `categoria_nombre`.
@@ -153,7 +152,7 @@ cancelación, conservación del historial y estado de sesión del frontend.
 ## Reglas de reserva por recurso
 
 La migración 006 añade `recursos.reglas_reserva`. Ejecuta `npm run migrate` antes
- de arrancar el backend actualizado. `null` conserva el comportamiento sin límites.
+de arrancar el backend actualizado. `null` conserva el comportamiento sin límites.
 Desde administración se pueden habilitar días (0 domingo a 6 sábado), apertura,
 cierre y duración mínima/máxima en minutos. La zona de las reglas es America/Bogota;
 el navegador continúa mostrando y capturando la hora local del usuario.
