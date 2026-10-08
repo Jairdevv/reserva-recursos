@@ -1,75 +1,43 @@
-# React + TypeScript + Vite
+# Organización del frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+El código se agrupa por funcionalidad dentro de `src/features`:
 
-Currently, two official plugins are available:
+- `auth`: login, registro, sesión y protección de rutas.
+- `recursos`: catálogo, servicios, tipos y reglas de los recursos.
+- `reservas`: disponibilidad, calendario, confirmación y cancelación.
+- `categorias`: servicios, tipos y gestión de categorías.
+- `administracion`: gestión de recursos activos e inactivos y sus formularios.
+- `inicio`: página pública de presentación.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+Cada módulo contiene solo las carpetas que necesita:
 
-## React Compiler
+- `pages` y `components`: presentación y eventos de la interfaz.
+- `hooks`: estado, carga de datos, validaciones del formulario y operaciones.
+- `services.ts`: solicitudes al backend.
+- `types.ts`: contratos de datos del módulo.
+- `utils`: funciones de cálculo y validación sin estado de React.
+- `styles`: estilos propios de la funcionalidad.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+`src/shared` contiene el cliente HTTP, la conexión con el servidor, el layout,
+la página de error y los estilos comunes. `App.tsx` conecta las rutas y mantiene
+la carga diferida del calendario. `main.tsx` inicia la aplicación.
 
-## Expanding the ESLint configuration
+Una página llama a su hook; el hook utiliza los servicios y utilidades del módulo.
+Los servicios usan el mismo cliente HTTP, que adjunta el token y controla los 401.
+Los módulos pueden importar contratos o servicios de otra funcionalidad cuando
+los necesitan: por ejemplo, las reservas consultan recursos y administración
+coordina recursos y categorías. No hay un archivo global de servicios o tipos.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+Las restricciones definitivas y la autorización continúan en el backend.
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+Desde `frontend`, ejecutar antes de entregar cambios:
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+```powershell
+npm run lint
+npm test
+npm run build
 ```
 
-You can also install [eslint-plugin-react-x](https://npmx.dev/package/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://npmx.dev/package/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
-```
+Las pruebas actuales comprueban sesión, franjas y presentación de reglas. Además,
+verificar en el navegador login, registro, filtros del catálogo, creación y
+cancelación de reservas y administración de recursos y categorías.
